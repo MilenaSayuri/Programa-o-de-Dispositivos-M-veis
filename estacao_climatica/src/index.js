@@ -1,43 +1,107 @@
-import 'bootstrap/dist/css/bootstrap.min.css'
-import React from 'react'
-import ReactDOM from 'react-dom'
+import "bootstrap/dist/css/bootstrap.min.css";
+import React from "react";
+import ReactDOM from "react-dom";
 
-class App extends React.Component{
-    constructor(props){
-        super(props)
-        this.state = {
-            latitude: null,
-            longitude: null,
-            estacao: null,
-            data: null,
-            icone: null
-        }
-    }
-    ObterEstacao = (data, latitude) => {
-        const anoAtual = data.getFullYear()
-        const d1 = new Date(anoAtual, 5, 21)
-        const d2 = new Date(anoAtual, 8, 24)
-        const d3 = new Date(anoAtual, 11, 22)
-        const d4 = new Date(anoAtual, 2, 21)
-        const estouNoSul = latitude < 0
-        if(data >= d1 && data < d2)
-            return estouNoSul ? 'Inverno' : 'Verao'
-        if(data >= d2 && data < d3)
-            return estouNoSul ? 'Primavera' : 'Outono'
-        if (data >= d3 || data < d4)
-            return estouNoSul ? 'Verão' : 'Inverno'
-          return estouNoSul ? 'Outono' : 'Primavera'
-    }
-    render(){
-        return (
-            <div>App</div>
-        )
-    }
+window.navigator.geolocation.getCurrentPosition((position) =>
+  console.log(position)
+);
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      latitude: null,
+      longitude: null,
+      estacao: null,
+      data: null,
+      icone: null,
+      mensagemDeErro: null,
+    };
+  }
+  ObterEstacao = (data, latitude) => {
+    const anoAtual = data.getFullYear();
+    const d1 = new Date(anoAtual, 5, 21);
+    const d2 = new Date(anoAtual, 8, 24);
+    const d3 = new Date(anoAtual, 11, 22);
+    const d4 = new Date(anoAtual, 2, 21);
+    const estouNoSul = latitude < 0;
+    if (data >= d1 && data < d2) return estouNoSul ? "Inverno" : "Verao";
+    if (data >= d2 && data < d3) return estouNoSul ? "Primavera" : "Outono";
+    if (data >= d3 || data < d4) return estouNoSul ? "Verão" : "Inverno";
+    return estouNoSul ? "Outono" : "Primavera";
+  };
+
+  icones = {
+    Primavera: "fa-seedling",
+    Verao: "fa-umbrella-beach",
+    Outono: "fa-tree",
+    Inverno: "fa-snowman",
+  };
+
+  obterLocalizaocao = () => {
+    window.navigator.geolocation.getCurrentPosition(
+      (posicao) => {
+        let data = new Date();
+        let estacao = this.ObterEstacao(data, posicao.coords.latitude);
+        let icone = this.icones[estacao];
+        console.log(icone);
+        this.setState({
+          latitude: posicao.coords.latitude,
+          longitude: posicao.coords.longitude,
+          estacao: estacao,
+          data: data.toLocaleTimeString(),
+          icone: icone,
+        });
+      },
+      (erro) => {
+        console.log(erro);
+        this.setState({ mensagemDeErro: "Tente novamente mais tarde" });
+      }
+    );
+  };
+
+  render() {
+    console.log(this.state);
+    return (
+      <div className="container mt-2">
+        <div className="row justify-content-center">
+          <div className="col-md-8">
+            <div className="card">
+              <div className="card-body">
+                <div
+                  className="d-flex align-items-center border rounded mb-2"
+                  style={{ height: "6rem" }}
+                >
+                  {/* Corrigi aqui: removi as aspas duplas */}
+                  <i className={`fas fa-5x ${this.state.icone}`}></i>
+                  <p className="w-75 ms-3 text-center fs-1">
+                    {this.state.estacao}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-center">
+                    {this.state.latitude
+                      ? `Coordenadas: ${this.state.latitude}, ${this.state.longitude}. Data: ${this.state.data}`
+                      : this.state.mensagemDeErro
+                      ? `${this.state.mensagemDeErro}`
+                      : `Clique no botão para saber a sua estação climática!`}
+                  </p>
+                </div>
+                <button
+                  onClick={this.obterLocalizaocao}
+                  className="btn btn-outline-primary w-100 mt-2"
+                >
+                  Qual a minha estação?
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
-ReactDOM.render(
-    <App/>,
-    document.querySelector('#root')
-)
+ReactDOM.render(<App />, document.querySelector("#root"));
 
-export default App
+export default App;
