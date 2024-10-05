@@ -1,23 +1,43 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
 import ReactDOM from "react-dom";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import { EstacaoClimatica } from "./EstacaoClimatica";
+import Loading from "./Loading";
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+/>;
 
 window.navigator.geolocation.getCurrentPosition((position) =>
   console.log(position)
 );
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      latitude: null,
-      longitude: null,
-      estacao: null,
-      data: null,
-      icone: null,
-      mensagemDeErro: null,
-    };
+  state = {
+    latitude: null,
+    longitude: null,
+    estacao: null,
+    data: null,
+    icone: null,
+    mensagemDeErro: null,
+  };
+
+  componentDidMount() {
+    this.obterLocalizaocao();
+    console.log("componentDidMount");
   }
+  componentDidUpdate() {
+    console.log("componentDidUpdate");
+  }
+  componentWillUnmount() {
+    console.log("componentWillUnmount");
+  }
+  render() {
+    console.log("render");
+  }
+
   ObterEstacao = (data, latitude) => {
     const anoAtual = data.getFullYear();
     const d1 = new Date(anoAtual, 5, 21);
@@ -35,7 +55,7 @@ class App extends React.Component {
     Primavera: "fa-seedling",
     Verao: "fa-umbrella-beach",
     Outono: "fa-tree",
-    Inverno: "fa-snowman",
+    Inverno: "fa-snowflake",
   };
 
   obterLocalizaocao = () => {
@@ -63,9 +83,29 @@ class App extends React.Component {
   render() {
     console.log(this.state);
     return (
+      //reponsividade, margem acima
       <div className="container mt-2">
+        {/* uma linha, conteúdo centralizado, display é flex */}
         <div className="row justify-content-center">
+          {/* oito colunas das doze disponíveis serão usadas para telas médias em diante */}
           <div className="col-md-8">
+            {!this.state.latitude && !this.state.mensagemDeErro ? (
+              <Loading mensagem="Por favor, responda à solicitação de localização" />
+            ) : this.state.mensagemDeErro ? (
+              <p className="border rounded p-2 fs-1 text-center">
+                É preciso dar permissão para acesso à localização. Atualize a
+                página e tente de novo, ajustando a configuração no seu
+                navegador.
+              </p>
+            ) : (
+              <EstacaoClimatica
+                icone={this.state.icone}
+                estacao={this.state.estacao}
+                latitude={this.state.latitude}
+                longitude={this.state.longitude}
+                obterLocalizacao={this.obterLocalizacao}
+              />
+            )}
             <div className="card">
               <div className="card-body">
                 <div
@@ -92,6 +132,16 @@ class App extends React.Component {
                   className="btn btn-outline-primary w-100 mt-2"
                 >
                   Qual a minha estação?
+                </button>
+                <button
+                  className="btn btn-outline-danger w-100 mt-2"
+                  onClick={() =>
+                    ReactDOM.unmountComponentAtNode(
+                      document.querySelector("#root")
+                    )
+                  }
+                >
+                  Unmount
                 </button>
               </div>
             </div>
