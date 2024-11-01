@@ -12,25 +12,63 @@ import { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 
 interface Lembrete {
-  id: string;
+  id?: string;
   texto: string;
 }
 
 export default function App() {
-  const [lembrete, setLembrete] = useState("");
+  const [lembrete, setLembrete] = useState <Lembrete>({texto: ''});
   const [lembretes, setLembretes] = useState<Lembrete[]>([]);
+  const [modoEdicao, setModoEdicao] = useState(false);
 
   const adicionar = () => {
-    if (lembrete.length >= 1) {
+    if (lembrete.texto.length >= 1) {
       const novoLembrete: Lembrete = {
         id: Date.now().toString(),
-        texto: lembrete,
+        texto: lembrete.texto
       };
       setLembretes((lembretesAtual) => [novoLembrete, ...lembretesAtual]);
-      setLembrete("");
+      setLembrete({texto: ''});
     } else {
       Alert.alert("É preciso digitar um lembrete");
     }
+  };
+
+  const remover = (lembrete: Lembrete) => {
+    // Alert.alert(
+    //   'Remover lembrete',
+    //   `Deseja remover este lembrete? ${lembrete.texto}`,
+    //   [
+    //     {
+    //       text: 'Cancelar',
+    //       style: 'cancel'
+    //     },
+    //     {
+    //       text: 'Remover',
+    //       style: 'destructive',
+    //       onPress: () => {
+    //         setLembretes(
+    //           lembretesAtual => lembretesAtual.filter(item => item.id !== lembrete.id)
+    //         )
+    //       }
+    //     }
+    //   ]
+    // )
+    setLembretes((lembretesAtual) =>
+      lembretesAtual.filter((item) => item.id !== lembrete.id)
+    );
+  };
+
+  const atualizar = () => {
+    const lembretesAtualizados = lembretes.map(item => {
+        if(item.id === lembrete.id)
+          return lembrete
+        return item
+    })
+
+    setLembretes(lembreteAtual => lembretesAtualizados)
+    setModoEdicao(false)
+    setLembrete({texto: ''})
   };
 
   return (
@@ -38,25 +76,32 @@ export default function App() {
       <TextInput
         style={styles.input}
         placeholder="Digite um lembrete..."
-        onChangeText={setLembrete}
-        value={lembrete}
-      />
-      <Pressable style={styles.button} onPress={adicionar}>
-        <Text style={styles.buttonText}>Salvar Lembrete</Text>
+        onChangeText={(novoTexto) => setLembrete({id: lembrete.id, texto: novoTexto})}
+        value={lembrete.texto}/>
+
+      <Pressable
+        style={styles.button}>
+          <Text
+          style={styles.buttonText}
+        onPress={modoEdicao ? atualizar : adicionar}>
+        {modoEdicao ? "Atualizar lembrete" : "Salvar lembrete"}
+        </Text>
       </Pressable>
-      
+
       <FlatList
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => (item.id)!}
         style={styles.list}
         data={lembretes}
-        renderItem={({ item }) => (
+        renderItem={l => (
           <View style={styles.listItem}>
-            <Text style={styles.listItemText}>{item.texto}</Text>
+            <Text style={styles.listItemText}>{l.item.texto}</Text>
             <View style={styles.listItemButtons}>
-              <Pressable>
+              <Pressable onPress={() => remover(l.item)}>
                 <AntDesign name="delete" size={24} />
               </Pressable>
-              <Pressable>
+              <Pressable onPress={() => {
+                setLembrete({id: l.item.id, texto: l.item.texto})
+                setModoEdicao(true)}}>
                 <AntDesign name="edit" size={24} />
               </Pressable>
             </View>
@@ -124,8 +169,7 @@ const styles = StyleSheet.create({
 
   listItemButtons: {
     flexDirection: "row",
-    width: '30%',
-    justifyContent: 'space-evenly'
+    width: "30%",
+    justifyContent: "space-evenly",
   },
-
 });
